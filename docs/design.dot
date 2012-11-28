@@ -1,0 +1,29 @@
+digraph G {
+	graph [fontname="Helvetica-Oblique", fontsize=36, label="\n\nDesign of node storage"];
+	node [fontname="Helvetica-Outline",style=filled,color=darkolivegreen3];
+
+	subgraph cluster_0 {
+		style=filled;
+		color=lightgrey;
+		node [color=deepskyblue];
+		C1 -> A1 -> B1 -> A2 -> B2 -> C2 [color="grey"];
+		label = "Append-only data blocks";
+	}
+
+	subgraph cluster_1 {
+		style=filled;
+		color=lightgrey;
+		node [color=red];
+		1 -> 2 -> 3 [color="grey"];
+		label = "Indexes for latest data";
+	}
+
+	1 -> C2 [color="black"];
+	2 -> A2 [color="black"];
+	3 -> B2 [color="black"];
+
+	A2 -> A1;
+	B2 -> B1;
+	C2 -> C1;
+
+}
