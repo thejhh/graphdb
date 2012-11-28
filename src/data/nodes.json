@@ -1,0 +1,7 @@
+{"id":0}
+{"id":1,"data":{"label":"C1"}}
+{"id":2,"data":{"label":"A1"}}
+{"id":3,"data":{"label":"B1"}}
+{"id":2,"rev":1,"prev":2,"data":{"label":"A2"}}
+{"id":3,"rev":1,"prev":3,"data":{"label":"B2"}}
+{"id":1,"rev":1,"prev":1,"data":{"label":"C2"}}
