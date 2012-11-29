@@ -35,8 +35,29 @@ Indexes.open = function(file) {
 };
 
 /** Build indexes from data file */
-Indexes.rebuild = function(file) {
+Indexes.rebuild = function(path) {
 	var defer = q.defer();
+	fs.open(path, 'r', 0666, function(err, fd) {
+		if(err) {
+			defer.reject(err);
+			return;
+		}
+
+		var buffer = new Buffer(1024);
+		fs.read(fd, buffer, 0, buffer.length, null, function(err, bytesRead, buffer) {
+			if(err) {
+				defer.reject(err);
+				return;
+			}
+			
+			var i = bytesRead-1;
+			for(; i>=0; i=i-1) {
+				if(buffer[i] === "\n".charCodeAt(0)) {
+					defer.resolve( buffer.toString('utf8', 0, i).join('\n') );
+				}
+			}
+		});
+	});
 	return defer.promise;
 };
 
