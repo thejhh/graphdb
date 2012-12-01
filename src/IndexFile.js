@@ -8,7 +8,6 @@ var Index = require('./Index.js');
 function Indexes(opts) {
 	var self = this;
 	opts = opts || {};
-	self._file = opts.file;
 	self._indexes = {};
 }
 
@@ -36,32 +35,30 @@ Indexes.open = function(file) {
 
 /** Build indexes from data file */
 Indexes.rebuild = function(path) {
-	var defer = q.defer();
-	fs.open(path, 'r', 0666, function(err, fd) {
-		if(err) {
-			defer.reject(err);
-			return;
-		}
-
-		var buffer = new Buffer(1024);
-		fs.read(fd, buffer, 0, buffer.length, null, function(err, bytesRead, buffer) {
-			if(err) {
-				defer.reject(err);
-				return;
-			}
-			
-			var i = bytesRead-1;
-			for(; i>=0; i=i-1) {
-				if(buffer[i] === "\n".charCodeAt(0)) {
-					defer.resolve( buffer.toString('utf8', 0, i).join('\n') );
-				}
-			}
-		});
+	var file;
+	var Indexes = new Indexes(path);
+	return File.open(path, 'r').then(function(f) {
+		file = f;
+		var data_offset = 0;
+		var s = new File.TextReadStream(f, {buffer_size:1024});
+		s.on('data', errors.catchfail(function(data) {
+			var rows = data.split("\n");
+			rows.map(function(row) {
+				console.error("DEBUG: row = '" + row + "' at " + data_offset + "-" + (row.length + 1));
+				data_offset += row.length + 1;
+			});
+		}));
+		s.on('end', errors.catchfail(function() {
+		}));
+		return s.read();
+	}).fin(function() {
+		if(file) file.close();
+	}).fail(function(err) {
+		errors.print(err);
 	});
-	return defer.promise;
 };
 
 // 
-module.exports = Index;
+module.exports = Indexes;
 
 /* EOF */

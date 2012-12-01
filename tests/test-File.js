@@ -25,12 +25,10 @@ module.exports = testCase({
 		}).then(function(data) {
 			var str = data.buffer.toString('utf8', 0, data.bytesRead);
 			test.strictEqual( str, 'Hello\nWorl');
-		}).then(function() {
-			return file.close();
-		}).then(function() {
+		}).fin(function() {
 			test.done();
-		}, function(err) {
-			test.done();
+			if(file) return file.close();
+		}).fail(function(err) {
 			errors.print(err);
 		}).done();
 	},
@@ -40,9 +38,11 @@ module.exports = testCase({
 		var self = this;
 		var offset = 0;
 		var buffer = new Buffer(1000);
+		var file;
 		buffer.fill('#');
 		//console.error("test-File.js: DEBUG: Opening file for stream test...");
 		File.open('files/hello.txt', 'r').then(function(f) {
+			file = f;
 			var s = new File.ReadStream(f, {buffer_size:10});
 			s.on('data', errors.catchfail(function(b, bytesRead) {
 				b.copy(buffer, offset, 0, bytesRead);
@@ -52,14 +52,12 @@ module.exports = testCase({
 				var str = buffer.toString('utf8', 0, offset);
 				test.strictEqual( str, 'Hello\nWorld\nIsn\'t\nit a\nGood day!\n');
 			}));
-			s.read().fin(function() {
-				test.done();
-			}).fail(function(err) {
-				errors.print(err);
-			}).done();
-		}, function(err) {
-			errors.print(err);
+			return s.read();
+		}).fin(function() {
 			test.done();
+			if(file) return file.close();
+		}).fail(function(err) {
+			errors.print(err);
 		}).done();
 	},
 	/* */
@@ -67,8 +65,10 @@ module.exports = testCase({
 		test.expect(1);
 		var self = this;
 		var buffer = "";
+		var file;
 		//console.error("test-File.js: DEBUG: Opening file for stream test...");
 		File.open('files/hello.txt', 'r').then(function(f) {
+			file = f;
 			var s = new File.TextReadStream(f, {buffer_size:10});
 			s.on('data', errors.catchfail(function(data) {
 				buffer += data;
@@ -76,14 +76,12 @@ module.exports = testCase({
 			s.on('end', errors.catchfail(function() {
 				test.strictEqual( buffer, 'Hello\nWorld\nIsn\'t\nit a\nGood day!\n');
 			}));
-			s.read().fin(function() {
-				test.done();
-			}).fail(function(err) {
-				errors.print(err);
-			}).done();
-		}, function(err) {
-			errors.print(err);
+			return s.read();
+		}).fin(function() {
 			test.done();
+			if(file) return file.close();
+		}).fail(function(err) {
+			errors.print(err);
 		}).done();
 	}
 });
