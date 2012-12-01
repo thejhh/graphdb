@@ -6,6 +6,7 @@ var util = require('util');
 var errors = require('./errors.js');
 var q = require('q');
 var EventEmitter = require('events').EventEmitter;
+var ReadStream = require('./ReadStream.js');
 
 /* */
 var mod = module.exports = {};
@@ -19,19 +20,6 @@ function Descriptor(fd) {
 util.inherits(Descriptor, EventEmitter);
 
 mod.Descriptor = Descriptor;
-
-/** Open file */
-mod.open = function(path, flags, mode) {
-	var defer = q.defer();
-	fs.open(path, flags, mode, errors.catchfail(function(err, fd) {
-		if(err) {
-			defer.reject(err);
-		} else {
-			defer.resolve(new Descriptor(fd));
-		}
-	}));
-	return defer.promise;
-};
 
 /** Truncate a file to a specified length. Asynchronous ftruncate(2). */
 Descriptor.prototype.truncate = function(len) {
@@ -149,14 +137,34 @@ Descriptor.prototype.write = function(buffer, offset, length, position) {
 Descriptor.prototype.read = function(buffer, offset, length, position) {
 	var self = this;
 	var defer = q.defer();
-	fs.read(self.fd, buffer, offset, length, position, errors.catchfail(function(err, bytesRead, buffer) {
+	fs.read(self.fd, buffer, offset, length, position, errors.catchfail(function(err, bytesRead, b) {
 		if(err) {
 			defer.reject(err);
 		} else {
-			defer.resolve(bytesRead, buffer);
+			var s = buffer.slice(offset, offset+bytesRead);
+			if(s === undefined) throw TypeError("s is undefined");
+			//console.error("File.js: DEBUG: bytesRead = " + bytesRead);
+			//console.error("File.js: DEBUG: s = " + s);
+			defer.resolve({bytesRead:bytesRead, buffer:s});
 		}
 	}));
 	return defer.promise;
 };
+
+/** Open file */
+mod.open = function(path, flags, mode) {
+	var defer = q.defer();
+	fs.open(path, flags, mode, errors.catchfail(function(err, fd) {
+		if(err) {
+			defer.reject(err);
+		} else {
+			defer.resolve(new Descriptor(fd));
+		}
+	}));
+	return defer.promise;
+};
+
+/** Open stream for reading */
+mod.ReadStream = ReadStream;
 
 /* EOF */

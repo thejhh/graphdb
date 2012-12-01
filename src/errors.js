@@ -3,9 +3,7 @@
 
 var line_width = 78;
 var line_buffer = new Array(line_width).join("-");
-
 var default_error_type = Error;
-
 var errors = module.exports = {};
 
 /** Set default error type */
@@ -32,7 +30,7 @@ errors.print = function(info, err) {
 		if( (key === 'message') && err_str.match(err[key]) ) return;
 		var w2 = Math.floor((line_width - 4 - key.length) / 2);
 		console.error('+' + line_buffer.substr(0, w2) + ' ' + key + ' ' + line_buffer.substr(0, line_width - w2 - key.length - 4) + '+');
-		var rows = err[key].split("\n");
+		var rows = (err[key]!==undefined) ? (""+err[key]).split("\n") : [];
 		if(rows.length === 1) {
 			console.error('| ' + err[key]);
 			return;
@@ -65,14 +63,16 @@ errors.catchfail = function(opts, block) {
 	error_type = opts.type || default_error_type;
 	f = function() {
 		var self = this;
-		var args = Array.prototype.slice.call(arguments);
+		var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+		//console.error('errors.js: DEBUG: arguments.length = ' + arguments.length);
+		//console.error('errors.js: DEBUG: args = [' + args.join(', ') + ']');
 		try {
 			return block.apply(self, args);
 		} catch(err) {
 			errors.print('Exception', err);
-			return error_callback(new error_type("Exception detected"));
+			return error_callback(new error_type("Exception detected (" + err + "), check backlog for details."));
 		}
-	}
+	};
 	return f;
 };
 
