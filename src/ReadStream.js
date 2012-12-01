@@ -35,7 +35,7 @@ ReadStream.prototype.read = function(amount) {
 				self.emit('end');
 				defer.resolve();
 			} else {
-				self.emit('data', data.bytesRead, data.buffer);
+				self.emit('data', data.buffer, data.bytesRead);
 				if(continuous) {
 					process.nextTick(do_next);
 				} else {

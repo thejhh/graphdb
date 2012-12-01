@@ -7,6 +7,7 @@ var errors = require('./errors.js');
 var q = require('q');
 var EventEmitter = require('events').EventEmitter;
 var ReadStream = require('./ReadStream.js');
+var TextReadStream = require('./TextReadStream.js');
 
 /* */
 var mod = module.exports = {};
@@ -166,5 +167,6 @@ mod.open = function(path, flags, mode) {
 
 /** Open stream for reading */
 mod.ReadStream = ReadStream;
+mod.TextReadStream = TextReadStream;
 
 /* EOF */

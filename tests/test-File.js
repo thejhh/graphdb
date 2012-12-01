@@ -35,7 +35,7 @@ module.exports = testCase({
 		}).done();
 	},
 	/* */
-	test_stream: function(test){
+	test_binary_stream: function(test){
 		test.expect(1);
 		var self = this;
 		var offset = 0;
@@ -44,13 +44,37 @@ module.exports = testCase({
 		//console.error("test-File.js: DEBUG: Opening file for stream test...");
 		File.open('files/hello.txt', 'r').then(function(f) {
 			var s = new File.ReadStream(f, {buffer_size:10});
-			s.on('data', errors.catchfail(function(bytesRead, b) {
+			s.on('data', errors.catchfail(function(b, bytesRead) {
 				b.copy(buffer, offset, 0, bytesRead);
 				offset += bytesRead;
 			}));
 			s.on('end', errors.catchfail(function() {
 				var str = buffer.toString('utf8', 0, offset);
 				test.strictEqual( str, 'Hello\nWorld\nIsn\'t\nit a\nGood day!\n');
+			}));
+			s.read().fin(function() {
+				test.done();
+			}).fail(function(err) {
+				errors.print(err);
+			}).done();
+		}, function(err) {
+			errors.print(err);
+			test.done();
+		}).done();
+	},
+	/* */
+	test_text_stream: function(test){
+		test.expect(1);
+		var self = this;
+		var buffer = "";
+		//console.error("test-File.js: DEBUG: Opening file for stream test...");
+		File.open('files/hello.txt', 'r').then(function(f) {
+			var s = new File.TextReadStream(f, {buffer_size:10});
+			s.on('data', errors.catchfail(function(data) {
+				buffer += data;
+			}));
+			s.on('end', errors.catchfail(function() {
+				test.strictEqual( buffer, 'Hello\nWorld\nIsn\'t\nit a\nGood day!\n');
 			}));
 			s.read().fin(function() {
 				test.done();
