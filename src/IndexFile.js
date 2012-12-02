@@ -5,7 +5,9 @@ var q = require('q');
 var Index = require('./Index.js');
 
 function resolve_data_path(p) {
-	return path.resolve(path.dirname(p), path.basename(p, path.extname(p)) + ".json");
+	var e = path.extname(p);
+	if(e === ".index") return path.resolve(path.dirname(p), path.basename(p, e) + ".json");
+	return path.resolve(path.dirname(p), path.basename(p));
 }
 
 function resolve_index_path(p) {
