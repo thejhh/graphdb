@@ -31,6 +31,23 @@ module.exports = testCase({
 		}).fail(function(err) {
 			errors.print(err);
 		}).done();
+	},
+	/* */
+	test_copy: function(test){
+		test.expect(1);
+		var orig_file = 'files/hello.txt';
+		var tmp_file = 'tmp/hello.txt';
+		var self = this;
+		File.copy(orig_file, tmp_file).then(function() {
+			return File.exists('tmp/hello.txt').then(function(exists) {
+				test.strictEqual( exists, true);
+			});
+		}).fin(function() {
+			test.done();
+			return File.unlink(tmp_file);
+		}).fail(function(err) {
+			errors.print(err);
+		}).done();
 	}
 });
 

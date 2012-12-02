@@ -21,7 +21,7 @@ module.exports = testCase({
 		test.strictEqual( i.id, 0);
 		test.strictEqual( i.offset, 0);
 		test.strictEqual( i.length, 10);
-		test.strictEqual( ''+i, '#0@0+10');
+		test.strictEqual( ''+i, '#0@0-9(10)');
 		test.done();
 	}
 });

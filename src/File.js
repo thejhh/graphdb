@@ -177,6 +177,49 @@ mod.exists = function(path) {
 	return defer.promise;
 };
 
+/** */
+mod.unlink = function(path) {
+	var defer = q.defer();
+	fs.unlink(path, errors.catchfail(function(err) {
+		if(err) {
+			defer.reject(err);
+		} else {
+			defer.resolve();
+		}
+	}));
+	return defer.promise;
+};
+
+/** Copy file from path1 to path2 */
+mod.copy = function(source_path, target_path) {
+	var source_file, target_file;
+	var buffer = new Buffer(1024);
+	var source = mod.open(source_path, 'r').then(function(f) {
+		source_file = f;
+	});
+	var target = mod.open(target_path, 'w').then(function(f) {
+		target_file = f;
+	});
+	return q.all([source, target]).then(function() {
+		var promises = [];
+		var s = new ReadStream(source_file, {buffer_size:1024});
+		s.on('data', errors.catchfail(function(b, bytesRead) {
+			promises.push(target_file.write(b, 0, bytesRead).then(function(data) {
+				if(data.written !== bytesRead) return new Error("Failed to write all data! FATAL ERROR!");
+			}));
+		}));
+		s.on('end', errors.catchfail(function() {
+		}));
+		promises.push(s.read());
+		return q.all(promises);
+	}).fin(function() {
+		var promises = [];
+		if(source_file) promises.push(source_file.close());
+		if(target_file) promises.push(target_file.close());
+		return q.all(promises);
+	});
+};
+
 /** Open stream for reading */
 mod.ReadStream = ReadStream;
 mod.TextReadStream = TextReadStream;

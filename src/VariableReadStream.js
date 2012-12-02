@@ -66,7 +66,7 @@ function init_listeners(self) {
 		self.emit('data', b, b_size);
 		
 		// Copy leftovers to last_buffer
-		if(i+1 < bytesRead) {
+		if(bytesRead - (i+1) >= 1) {
 			//console.error("DEBUG: Copying leftovers to last_buffer...");
 			n.copy(last_buffer, 0, i+1, bytesRead);
 			last_buffer_len = bytesRead - (i+1);
@@ -78,7 +78,9 @@ function init_listeners(self) {
 	});
 	self.internal.on('end', function() {
 		//console.error("DEBUG: Emitting data event with '" + str + "'");
-		self.emit('data', last_buffer.slice(0, last_buffer_len), last_buffer_len);
+		if(last_buffer_len > 0) {
+			self.emit('data', last_buffer.slice(0, last_buffer_len), last_buffer_len);
+		}
 		//console.error("DEBUG: Emitting end event");
 		self.emit('end');
 	});

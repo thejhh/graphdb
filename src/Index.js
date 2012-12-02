@@ -13,7 +13,7 @@ function Index(opts) {
 /** Returns string presentation of the index */
 Index.prototype.toString = function() {
 	var self = this;
-	return '#' + self.id + '@' + self.offset + '+' + self.length;
+	return '#' + self.id + '@' + self.offset +'-' + (self.offset + self.length-1) + '(' + self.length+')';
 };
 
 /** Returns the index in binary format as a Buffer

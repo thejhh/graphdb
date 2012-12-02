@@ -108,10 +108,11 @@ IndexFile.rebuild = function(data_path) {
 		var data_offset = 0;
 		var s = new File.VariableReadStream(f, {buffer_size:1024, delimiter:'\n'.charCodeAt(0)});
 		s.on('data', errors.catchfail(function(data, len) {
+			if(data[len-1] === "\n".charCodeAt(0)) len = len-1;
 			var rows = buffer_utils.split("\n".charCodeAt(0), data, len);
 			var indices = rows.map(function(row) {
 				console.error("DEBUG: row = '" + row + "' at " + data_offset + "+" + (row.length + 1));
-				var index = new Index({'id':data_id, 'offset':data_offset, 'length':row.length + 1});
+				var index = new Index({'id':data_id, 'offset':data_offset, 'length':row.length});
 				console.error("DEBUG: index = " + index);
 				data_offset += row.length + 1;
 				data_id++;

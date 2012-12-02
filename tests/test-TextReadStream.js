@@ -14,7 +14,13 @@ module.exports = testCase({
 		callback();
 	},
 	test_text_stream: function(test){
-		test.expect(1);
+		var results = [
+			'Hello\n',
+			'World\nIsn\'t\n',
+			'it a\n',
+			'Good day!\n'
+		];
+		test.expect(2 + results.length);
 		var self = this;
 		var buffer = "";
 		var file;
@@ -22,10 +28,14 @@ module.exports = testCase({
 		File.open('files/hello.txt', 'r').then(function(f) {
 			file = f;
 			var s = new File.TextReadStream(f, {buffer_size:10});
+			var i = 0;
 			s.on('data', errors.catchfail(function(data) {
+				test.strictEqual(data, results[i]);
 				buffer += data;
+				i += 1;
 			}));
 			s.on('end', errors.catchfail(function() {
+				test.strictEqual( i, 4 );
 				test.strictEqual( buffer, 'Hello\nWorld\nIsn\'t\nit a\nGood day!\n');
 			}));
 			return s.read();
