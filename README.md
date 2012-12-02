@@ -1,5 +1,2 @@
-Graph Database Concept Test
-===========================
-
-Features:
-* Copy-on-Write
+Graph Database Concept Testing
+==============================
