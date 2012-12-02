@@ -8,6 +8,7 @@ var q = require('q');
 var EventEmitter = require('events').EventEmitter;
 var ReadStream = require('./ReadStream.js');
 var TextReadStream = require('./TextReadStream.js');
+var VariableReadStream = require('./VariableReadStream.js');
 
 /* */
 var mod = module.exports = {};
@@ -168,5 +169,6 @@ mod.open = function(path, flags, mode) {
 /** Open stream for reading */
 mod.ReadStream = ReadStream;
 mod.TextReadStream = TextReadStream;
+mod.VariableReadStream = VariableReadStream;
 
 /* EOF */

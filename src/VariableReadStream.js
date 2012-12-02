@@ -1,4 +1,4 @@
-/* Interface implementing TextReadStream */
+/* Interface implementing VariableReadStream */
 
 var fs = require('fs');
 var util = require('util');
@@ -8,14 +8,14 @@ var EventEmitter = require('events').EventEmitter;
 var ReadStream = require('./ReadStream.js');
 
 /** */
-function TextReadStream(file, opts) {
+function VariableReadStream(file, opts) {
 	var self = this;
 	EventEmitter.call(self);
 	opts = opts || {};
-	self.delimiter = opts.delimiter || '\n';
+	self.delimiter = opts.delimiter || 30; // ASCII 30 - Record Separator
 	self.internal = new ReadStream(file, opts);
 }
-util.inherits(TextReadStream, EventEmitter);
+util.inherits(VariableReadStream, EventEmitter);
 
 /** Find last index for value in a buffer */
 function find_last(value, buffer, size) {
@@ -36,7 +36,7 @@ function init_listeners(self) {
 	last_buffer.fill('#'); // FIXME: This could be disabled in production code to improve performance
 	self.internal.on('data', function(n, bytesRead) {
 		//console.error("DEBUG: data event triggered with n = '" + n.slice(0, bytesRead) + "', bytesRead=" + bytesRead);
-		var i = find_last(self.delimiter.charCodeAt(0), n, bytesRead);
+		var i = find_last(self.delimiter, n, bytesRead);
 		//console.error("DEBUG: i = " + i);
 		
 		// If there was no new lines, we need to read more.
@@ -72,10 +72,8 @@ function init_listeners(self) {
 		}
 		//console.error("DEBUG: b = '" + b.slice(0, b_size) + "'");
 		
-		// Emit data as utf8 strings
-		var str = b.toString('utf8', 0, b_size);
-		//console.error("DEBUG: Emitting data event with '" + str + "'");
-		self.emit('data', str);
+		// Emit data
+		self.emit('data', b, b_size);
 		
 		// Copy leftovers to last_buffer
 		if(i+1 < bytesRead) {
@@ -89,10 +87,8 @@ function init_listeners(self) {
 
 	});
 	self.internal.on('end', function() {
-		//console.error("DEBUG: End event triggered...");
-		var str = last_buffer.toString('utf8', 0, last_buffer_len);
 		//console.error("DEBUG: Emitting data event with '" + str + "'");
-		self.emit('data', str);
+		self.emit('data', last_buffer.slice(0, last_buffer_len), last_buffer_len);
 		//console.error("DEBUG: Emitting end event");
 		self.emit('end');
 	});
@@ -100,13 +96,13 @@ function init_listeners(self) {
 }
 
 /* Start reading */
-TextReadStream.prototype.read = function(amount) {
+VariableReadStream.prototype.read = function(amount) {
 	var self = this;
 	if(!self.has_listeners) init_listeners(self);
 	return self.internal.read(amount);
 };
 
 // Export as module
-module.exports = TextReadStream;
+module.exports = VariableReadStream;
 
 /* EOF */
