@@ -6,6 +6,7 @@ var errors = require('./errors.js');
 var q = require('q');
 var EventEmitter = require('events').EventEmitter;
 var ReadStream = require('./ReadStream.js');
+var buffer_utils = require('./buffer_utils.js');
 
 /** */
 function VariableReadStream(file, opts) {
@@ -17,17 +18,6 @@ function VariableReadStream(file, opts) {
 }
 util.inherits(VariableReadStream, EventEmitter);
 
-/** Find last index for value in a buffer */
-function find_last(value, buffer, size) {
-	var i = size || (buffer.length-1);
-	for(; i>=0; i=i-1) {
-		if(buffer[i] === value) {
-			return i;
-		}
-	}
-	return;
-}
-
 /** Internal builder for listeners */
 function init_listeners(self) {
 	var tmp;
@@ -36,7 +26,7 @@ function init_listeners(self) {
 	last_buffer.fill('#'); // FIXME: This could be disabled in production code to improve performance
 	self.internal.on('data', function(n, bytesRead) {
 		//console.error("DEBUG: data event triggered with n = '" + n.slice(0, bytesRead) + "', bytesRead=" + bytesRead);
-		var i = find_last(self.delimiter, n, bytesRead);
+		var i = buffer_utils.find_last(self.delimiter, n, bytesRead);
 		//console.error("DEBUG: i = " + i);
 		
 		// If there was no new lines, we need to read more.

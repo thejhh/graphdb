@@ -10,6 +10,8 @@ var ReadStream = require('./ReadStream.js');
 var TextReadStream = require('./TextReadStream.js');
 var VariableReadStream = require('./VariableReadStream.js');
 
+/* TODO: Implement buffered File implementation */
+
 /* */
 var mod = module.exports = {};
 
@@ -162,6 +164,15 @@ mod.open = function(path, flags, mode) {
 		} else {
 			defer.resolve(new Descriptor(fd));
 		}
+	}));
+	return defer.promise;
+};
+
+/** */
+mod.exists = function(path) {
+	var defer = q.defer();
+	fs.exists(path, errors.catchfail(function(exists) {
+		defer.resolve(exists);
 	}));
 	return defer.promise;
 };
