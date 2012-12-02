@@ -4,41 +4,50 @@
 var q = require('q');
 var Index = require('./Index.js');
 
+function resolve_data_path(p) {
+	return path.resolve(path.dirname(p), path.basename(p, path.extname(p)) + ".json");
+}
+
+function resolve_index_path(p) {
+	return path.resolve(path.dirname(p), path.basename(p, path.extname(p)) + ".index");
+}
+	
 /** Constructor */
-function Indexes(opts) {
+function Indices(opts) {
 	var self = this;
 	opts = opts || {};
-	self._indexes = {};
+	self._indices = {};
 }
 
 /** Get index from location x */
-Indexes.prototype.get = function(x) {
+Indices.prototype.get = function(x) {
 	var self = this;
-	return self._indexes[x];
+	return self._indices[x];
 };
 
 /** Save index to location x */
-Indexes.prototype.set = function(x, i) {
+Indices.prototype.set = function(x, i) {
 	var self = this;
-	if(!(i instanceof 'Index')) throw new TypeError("Argument for Indexes.prototype.set is not a Index!");
-	self._indexes[x] = i;
+	if(!(i instanceof 'Index')) throw new TypeError("Argument for Indices.prototype.set is not a Index!");
+	self._indices[x] = i;
 	return self;
 };
 
-/** Save indexes to file */
-Indexes.prototype.save = function(file) {
+/** Save indices to file */
+Indices.prototype.save = function(file) {
 };
 
-/** Read indexes from index file */
-Indexes.open = function(file) {
+/** Read indices from index file */
+Indices.open = function(file) {
 };
 
-/** Build indexes from data file */
-Indexes.rebuild = function(path) {
-	var file;
-	var Indexes = new Indexes(path);
-	return File.open(path, 'r').then(function(f) {
-		file = f;
+/** Build indices from data file */
+Indices.rebuild = function(data_path) {
+	data_path = resolve_data_path(data_path);
+	var data_file;
+	var indices = new Indices(resolve_index_path(data_path));
+	return File.open(data_path, 'r').then(function(f) {
+		data_file = f;
 		var data_offset = 0;
 		var s = new File.TextReadStream(f, {buffer_size:1024});
 		s.on('data', errors.catchfail(function(data) {
@@ -52,13 +61,13 @@ Indexes.rebuild = function(path) {
 		}));
 		return s.read();
 	}).fin(function() {
-		if(file) file.close();
+		if(data_file) data_file.close();
 	}).fail(function(err) {
 		errors.print(err);
 	});
 };
 
 // 
-module.exports = Indexes;
+module.exports = Indices;
 
 /* EOF */
