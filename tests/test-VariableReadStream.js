@@ -22,7 +22,7 @@ module.exports = testCase({
 		//console.error("test-File.js: DEBUG: Opening file for stream test...");
 		File.open('files/hello.txt', 'r').then(function(f) {
 			file = f;
-			var s = new File.VariableReadStream(f, {buffer_size:10, delimiter:'\n'});
+			var s = new File.VariableReadStream(f, {buffer_size:10, delimiter:'\n'.charCodeAt(0)});
 			s.on('data', errors.catchfail(function(data, len) {
 				buffer += data.toString('utf8', 0, len);
 			}));
