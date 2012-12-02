@@ -12,6 +12,7 @@ function TextReadStream(file, opts) {
 	var self = this;
 	EventEmitter.call(self);
 	opts = opts || {};
+	self.encoding = opts.encoding || 'utf8';
 	self.delimiter = (opts.delimiter || '\n');
 	opts.delimiter = self.delimiter.charCodeAt(0);
 	self.internal = new VariableReadStream(file, opts);
@@ -22,7 +23,7 @@ util.inherits(TextReadStream, EventEmitter);
 function init_listeners(self) {
 	self.internal.on('data', function(b, b_size) {
 		// Emit data as utf8 strings
-		var str = b.toString('utf8', 0, b_size);
+		var str = b.toString(self.encoding || 'utf8', 0, b_size);
 		//console.error("DEBUG: Emitting data event with '" + str + "'");
 		self.emit('data', str);
 	});
