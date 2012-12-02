@@ -2,6 +2,9 @@
 /* Simple block-based file storage for Copy on Write implementations */
 
 var q = require('q');
+var path = require('path');
+var errors = require('./errors.js');
+var File = require('./File.js');
 var Index = require('./Index.js');
 
 function resolve_data_path(p) {
@@ -13,41 +16,52 @@ function resolve_data_path(p) {
 function resolve_index_path(p) {
 	return path.resolve(path.dirname(p), path.basename(p, path.extname(p)) + ".index");
 }
-	
+
 /** Constructor */
-function Indices(opts) {
+function IndexFile(file, opts) {
 	var self = this;
+	if(!opts) {
+		opts = file;
+		file = undefined;
+	}
 	opts = opts || {};
+	self._file = opts.file;
 	self._indices = {};
 }
 
-/** Get index from location x */
-Indices.prototype.get = function(x) {
+/** Get string presentation */
+IndexFile.prototype.toString = function() {
+	var self = this;
+	return "IndexFile(" + self._file + ")";
+};
+
+/** Get index from location x. This function will make use of a local cache. */
+IndexFile.prototype.get = function(x) {
 	var self = this;
 	return self._indices[x];
 };
 
-/** Save index to location x */
-Indices.prototype.set = function(x, i) {
+/** Save index to location x. This function will make use of a local cache. */
+IndexFile.prototype.set = function(x, i) {
 	var self = this;
-	if(!(i instanceof 'Index')) throw new TypeError("Argument for Indices.prototype.set is not a Index!");
+	if(!(i instanceof 'Index')) throw new TypeError("Argument for IndexFile.prototype.set is not a Index!");
 	self._indices[x] = i;
 	return self;
 };
 
-/** Save indices to file */
-Indices.prototype.save = function(file) {
+/** Save index to file. Doesn't use cache. */
+IndexFile.prototype.save = function(index) {
 };
 
-/** Read indices from index file */
-Indices.open = function(file) {
+/** Read index from file */
+IndexFile.prototype.read = function(x) {
 };
 
 /** Build indices from data file */
-Indices.rebuild = function(data_path) {
+IndexFile.rebuild = function(data_path) {
 	data_path = resolve_data_path(data_path);
 	var data_file;
-	var indices = new Indices(resolve_index_path(data_path));
+	var index_file = new IndexFile(resolve_index_path(data_path));
 	return File.open(data_path, 'r').then(function(f) {
 		data_file = f;
 		var data_offset = 0;
@@ -64,12 +78,12 @@ Indices.rebuild = function(data_path) {
 		return s.read();
 	}).fin(function() {
 		if(data_file) data_file.close();
-	}).fail(function(err) {
-		errors.print(err);
+	}).then(function() {
+		return index_file;
 	});
 };
 
 // 
-module.exports = Indices;
+module.exports = IndexFile;
 
 /* EOF */
