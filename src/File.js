@@ -220,6 +220,20 @@ mod.copy = function(source_path, target_path) {
 	});
 };
 
+/** Get file status. Asynchronous stat(2). */
+mod.stat = function(path) {
+	var self = this;
+	var defer = q.defer();
+	fs.stat(path, errors.catchfail(function(err, stats) {
+		if(err) {
+			defer.reject(err);
+		} else {
+			defer.resolve(stats);
+		}
+	}));
+	return defer.promise;
+};
+
 /** Open stream for reading */
 mod.ReadStream = ReadStream;
 mod.TextReadStream = TextReadStream;
