@@ -6,44 +6,41 @@ var path = require('path');
 var errors = require('./errors.js');
 var File = require('./File.js');
 var Index = require('./Index.js');
-var path_utils = require('./path_utils.js');
 var buffer_utils = require('./buffer_utils.js');
-var common_utils = require('./common_utils.js');
 
 /** Constructor */
-function IndexFile(file, opts) {
+function DataFile(file, opts) {
 	var self = this;
 	opts = opts || {};
-	self.index_size = 8;
 	self._data_file = path_utils.resolve_data_path(file);
-	self._index_file = path_utils.resolve_index_path(file);
-	self._indices = {};
-	if(!self._index_file) throw new TypeError("No filename set!");
-	self._fd = File.exists(self._index_file).then(function(exists) {
-		return File.open(self._index_file, (exists) ? 'r+' : 'w+' );
+	if(!self._data_file) throw new TypeError("No filename set!");
+	self._fd = File.exists(self._data_file).then(function(exists) {
+		if(exists) return File.open(self._data_file, 'r+');
+		return new Error("File does not exist: " + self._data_file);
 	});
-	common_utils.restat(self);
+	do_restat(self);
 }
 
 /* */
-IndexFile.prototype.restat = function() {
-	return common_utils.restat(this);
+DataFile.prototype.restat = function() {
+	return do_restat(this);
 };
 
 /* Close file */
-IndexFile.prototype.close = function() {
+DataFile.prototype.close = function() {
 	var self = this;
 	return self._fd.then(function(f) { return f.close(); });
 };
 
 /** Get string presentation */
-IndexFile.prototype.toString = function() {
+DataFile.prototype.toString = function() {
 	var self = this;
-	return "IndexFile(" + self._index_file + ")";
+	return "DataFile(" + self._data_file + ")";
 };
 
-/** Get index or indices from location(s). Use array of positions to fetch more than one index. */
-IndexFile.prototype.get = function(x) {
+/** Get data from location(s). Use array of positions to fetch more than one index. */
+DataFile.prototype.get = function(x) {
+	/*
 	var self = this;
 	if(!(x instanceof Array)) {
 		return self._stat.then(function(stats) {
@@ -62,10 +59,12 @@ IndexFile.prototype.get = function(x) {
 		return self.get(i);
 	});
 	return q.all(promises);
+	*/
 };
 
-/** Save index or array of indices */
-IndexFile.prototype.save = function(index) {
+/** Save data to location x or locations if array*/
+DataFile.prototype.save = function(x, data) {
+	/*
 	var self = this;
 	if(!(index instanceof Array)) {
 		return q.all(self._save(index), self.restat());
@@ -75,11 +74,13 @@ IndexFile.prototype.save = function(index) {
 	});
 	promises.push(self.restat());
 	return q.all(promises);
+	*/
 };
 
-/** Read index from file */
-IndexFile.prototype._get = function(x) {
+/** Read data from file by index x */
+DataFile.prototype._get = function(x) {
 	x = parseInt(x, 10);
+/*
 	var self = this;
 	var buf = new Buffer(self.index_size);
 	var p = this._fd.then(function(f) {
@@ -91,10 +92,12 @@ IndexFile.prototype._get = function(x) {
 		return data.buffer.readUInt32BE(4);
 	});
 	return p;
+*/
 };
 
 /** Save index directly to a file. Doesn't use cache. */
-IndexFile.prototype._save = function(index) {
+DataFile.prototype._save = function(index) {
+	/*
 	if(!(index instanceof Index)) return new TypeError("Argument is not an Index!");
 	var self = this;
 	var buf = new Buffer(self.index_size);
@@ -106,13 +109,14 @@ IndexFile.prototype._save = function(index) {
 			return new TypeError("We couldn't write all data! MAYBE BROKEN INDEX!");
 		}
 	});
+	*/
 };
 
-/** Build indices from a data file */
-IndexFile.rebuild = function(data_path) {
+/** Build indices from data file */
+DataFile.rebuild = function(data_path) {
 	data_path = path_utils.resolve_data_path(data_path);
 	var data_file;
-	var index_file = new IndexFile(path_utils.resolve_index_path(data_path));
+	var index_file = new DataFile(path_utils.resolve_index_path(data_path));
 	return File.open(data_path, 'r').then(function(f) {
 		data_file = f;
 		var data_id = 0;
@@ -141,6 +145,6 @@ IndexFile.rebuild = function(data_path) {
 };
 
 // 
-module.exports = IndexFile;
+module.exports = DataFile;
 
 /* EOF */
